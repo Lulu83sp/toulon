@@ -5,7 +5,7 @@ import {cookies} from 'next/headers';
 import bcrypt from 'bcryptjs';
 import {sql} from '../lib/db';
 import {getUser,setSession,lv,LV} from '../lib/auth';
-import {SERVICES} from '../lib/services';
+import {SERVICES,svcList,svcJoin} from '../lib/services';
 const s=(f,k,max)=>String(f.get(k)||'').trim().slice(0,max);
 const back=(p,e)=>redirect(`${p}?e=${encodeURIComponent(e)}`);
 const safeNext=n=>{n=String(n||'');return /^\/(?!\/)[^\\]*$/.test(n)?n:'/'};
@@ -88,7 +88,9 @@ export async function setRole(f){
   const [t]=await sql`select role from users where id=${id}`;
   if(LV[t.role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
   if(LV[role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
-  await sql`update users set role=${role},service=case when service='staff' and ${LV[role]}<3 then '' else service end where id=${id}`; revalidatePath('/admin');
+  const [cs]=await sql`select service from users where id=${id}`;
+  const keep=svcList(cs?.service).filter(k=>!(k==='staff'&&LV[role]<3)).join(',');
+  await sql`update users set role=${role},service=${keep} where id=${id}`; revalidatePath('/admin');
 }
 export async function toggleBan(f){
   const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
@@ -193,20 +195,26 @@ export async function lockForum(f){
 
 export async function saveService(f){
   const u=await getUser(); if(!u) redirect('/login');
-  const staff=lv(u)>=LV['Modérateur'],k=String(f.get('service')||'');
-  if(k&&!Object.prototype.hasOwnProperty.call(SERVICES,k)) se('e','Service invalide.');
-  if(k&&SERVICES[k].r&&!staff) se('e','Ce badge est réservé au staff.');
+  const staff=lv(u)>=LV['Modérateur'];
+  const asked=f.getAll('service').map(String);
+  if(asked.some(k=>!Object.prototype.hasOwnProperty.call(SERVICES,k))) se('e','Service invalide.');
   const [cur]=await sql`select service from users where id=${u.id}`;
-  if(cur?.service&&SERVICES[cur.service]?.r&&!staff) se('e','Votre badge est géré par le staff.');
-  await sql`update users set service=${k} where id=${u.id}`;
-  revalidatePath('/','layout'); se('ok',k?`Service choisi : ${SERVICES[k].n}.`:'Service retiré.');
+  const held=svcList(cur?.service);
+  let next=svcList(asked);
+  if(!staff){
+    // Un membre ne peut ni ajouter ni retirer un badge réservé au staff
+    if(next.some(k=>SERVICES[k].r&&!held.includes(k))) se('e','Ce badge est réservé au staff.');
+    next=[...new Set([...held.filter(k=>SERVICES[k].r),...next.filter(k=>!SERVICES[k].r)])];
+  }
+  await sql`update users set service=${next.join(',')} where id=${u.id}`;
+  revalidatePath('/','layout'); se('ok',next.length?`Services enregistrés : ${next.map(k=>SERVICES[k].n).join(', ')}.`:'Services retirés.');
 }
 export async function setMemberService(f){
   const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
-  const id=Number(f.get('id')),k=String(f.get('service')||'');
-  if(k&&!Object.prototype.hasOwnProperty.call(SERVICES,k)) redirect('/admin');
+  const id=Number(f.get('id')),asked=f.getAll('service').map(String);
+  if(asked.some(k=>!Object.prototype.hasOwnProperty.call(SERVICES,k))) redirect('/admin');
   const [t]=await sql`select role from users where id=${id}`; if(!t) redirect('/admin');
   if(id!==u.id&&LV[t.role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
-  await sql`update users set service=${k} where id=${id}`;
+  await sql`update users set service=${svcJoin(asked)} where id=${id}`;
   revalidatePath('/admin'); revalidatePath('/','layout');
 }

@@ -4,14 +4,14 @@ import {saveProfile,changeEmail,changePassword,removeAvatar,chooseTheme,saveServ
 import AvatarUploader from '../AvatarUploader';
 import PwInput from '../PwInput';
 import {cookies} from 'next/headers';
-import {SERVICES} from '../../lib/services';
+import {SERVICES,svcList} from '../../lib/services';
 import {redirect} from 'next/navigation';
 export const dynamic='force-dynamic';
 const THEMES=[['rouge','Rouge','#e0151b','#ffffff'],['sobre','Sobre','#41607f','#f2f3f5'],['sombre','Sombre','#e5383b','#1c2128']];
 export default async function S({searchParams}){
   const u=await getUser(); if(!u) redirect('/login?next=/settings');
   const [me]=await sql`select pseudo,email,bio,avatar,service from users where id=${u.id}`;
-  const staff=lv(u)>=LV['Modérateur'],held=SERVICES[me.service],locked=held?.r&&!staff;
+  const staff=lv(u)>=LV['Modérateur'],mine=svcList(me.service),lockedKeys=staff?[]:mine.filter(k=>SERVICES[k].r);
   const th=['rouge','sobre','sombre'].includes(cookies().get('theme')?.value)?cookies().get('theme').value:'rouge';
   return(<>
     <p className="crumb"><a href="/">Accueil</a> › Paramètres</p>
@@ -27,16 +27,12 @@ export default async function S({searchParams}){
       <label>Biographie<textarea name="bio" rows="4" maxLength={500} defaultValue={me.bio} placeholder="Présentez-vous en quelques mots…"/></label>
       <button className="btn">Enregistrer le profil</button></form>
 
-    {locked?<section className="card sf"><h3>Mon service</h3>
-      <p style={{margin:0}}>Votre badge : <span className="svc" style={{background:held.c}}>{held.i} {held.n}</span></p>
-      <p className="mu" style={{margin:'8px 0 0'}}>Ce badge a été attribué par le staff. Contactez un membre du staff pour le modifier.</p></section>
-    :<form action={saveService} className="card sf"><h3>Mon service</h3>
-      <p className="mu" style={{margin:'-6px 0 12px'}}>Choisissez le service que vous incarnez : un badge s’affichera sur vos messages et votre profil.</p>
+    <form action={saveService} className="card sf"><h3>Mes services</h3>
+      <p className="mu" style={{margin:'-6px 0 12px'}}>Cochez un ou plusieurs services que vous incarnez : les badges s’afficheront sur vos messages et votre profil.</p>
       <div className="svcs">
-        <label className="opt"><input type="radio" name="service" value="" defaultChecked={!me.service}/><span>👤 Civil / aucun</span></label>
-        {Object.entries(SERVICES).filter(([,s])=>!s.r||staff).map(([k,s])=><label className="opt" key={k}><input type="radio" name="service" value={k} defaultChecked={me.service===k}/><span style={{'--sc':s.c}}>{s.i} {s.n}{s.r&&' · staff'}</span></label>)}
+        {Object.entries(SERVICES).filter(([k,s])=>!s.r||staff||lockedKeys.includes(k)).map(([k,s])=>{const lk=lockedKeys.includes(k);return(<label className="opt" key={k}><input type="checkbox" name="service" value={k} defaultChecked={mine.includes(k)} disabled={lk}/>{lk&&<input type="hidden" name="service" value={k}/>}<span style={{'--sc':s.c}}>{s.i} {s.n}{s.r&&' · staff'}{lk&&' · attribué par le staff'}</span></label>)})}
       </div>
-      <button className="btn" style={{marginTop:14}}>Enregistrer mon service</button></form>}
+      <button className="btn" style={{marginTop:14}}>Enregistrer mes services</button></form>
 
     <section className="card sf"><h3>Apparence</h3>
       <div className="themes">{THEMES.map(([k,n,a,b])=><form action={chooseTheme} key={k}><input type="hidden" name="theme" value={k}/>
