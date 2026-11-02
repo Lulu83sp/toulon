@@ -133,5 +133,5 @@ footer{text-align:center}
 .svcpop label{margin:0;display:flex;gap:6px;align-items:center;cursor:pointer;font-size:14px}.svcpop input{width:auto;margin:0}
 .cat.memb{overflow:visible}.cat.memb .cat-h{border-radius:4px 4px 0 0}.svcpick[open]{z-index:30}
 
-.svclogo{height:16px;width:auto;max-width:56px;vertical-align:-3px;background:#fff;border-radius:3px;padding:1px 3px;object-fit:contain}
-.opt .svclogo{height:22px;max-width:70px;margin-right:2px}.svcpop .svclogo{height:18px}
+.svclogo{height:18px;width:auto;max-width:64px;vertical-align:-4px;object-fit:contain;background:none;padding:0;filter:drop-shadow(0 0 .6px #fff) drop-shadow(0 0 .6px #fff)}
+.opt .svclogo{height:24px;max-width:80px;margin-right:2px}.svcpop .svclogo{height:20px}
