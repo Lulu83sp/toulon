@@ -39,3 +39,5 @@ end $$;
 alter table forums add column if not exists descr text not null default '';
 -- Verrouillage des salons. À exécuter UNE FOIS.
 alter table forums add column if not exists locked bool not null default false;
+-- Service choisi par le joueur (paramètres). À exécuter UNE FOIS.
+alter table users add column if not exists service text not null default '';

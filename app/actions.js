@@ -5,6 +5,7 @@ import {cookies} from 'next/headers';
 import bcrypt from 'bcryptjs';
 import {sql} from '../lib/db';
 import {getUser,setSession,lv,LV} from '../lib/auth';
+import {SERVICES} from '../lib/services';
 const s=(f,k,max)=>String(f.get(k)||'').trim().slice(0,max);
 const back=(p,e)=>redirect(`${p}?e=${encodeURIComponent(e)}`);
 const safeNext=n=>{n=String(n||'');return /^\/(?!\/)[^\\]*$/.test(n)?n:'/'};
@@ -188,4 +189,12 @@ export async function lockForum(f){
   const id=Number(f.get('id'));
   await sql`update forums set locked=not locked where id=${id}`;
   revalidatePath('/'); revalidatePath(`/f/${id}`); revalidatePath('/admin/structure');
+}
+
+export async function saveService(f){
+  const u=await getUser(); if(!u) redirect('/login');
+  const k=String(f.get('service')||'');
+  if(k&&!Object.prototype.hasOwnProperty.call(SERVICES,k)) se('e','Service invalide.');
+  await sql`update users set service=${k} where id=${u.id}`;
+  revalidatePath('/','layout'); se('ok',k?`Service choisi : ${SERVICES[k].n}.`:'Service retiré.');
 }

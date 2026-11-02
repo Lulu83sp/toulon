@@ -116,3 +116,14 @@ footer{text-align:center}
 [data-theme=sombre] .mrow,[data-theme=sombre] .frow,[data-theme=sombre] .trow{border-color:var(--bd)}
 .doc{padding:0;overflow:hidden}.doc-h{padding:14px 20px;font-size:20px;font-weight:700;border-bottom:1px solid var(--bd);border-left:5px solid var(--ac)}
 .doc-h a:hover{color:var(--ac)}.doc-b{padding:18px 22px;line-height:1.7}.doc-f{padding:10px 20px;border-top:1px solid var(--bd)}.doc-f a{color:var(--ac)}
+.svc{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;color:#fff;vertical-align:middle;white-space:nowrap}
+.svcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.sf label.opt{margin:0;cursor:pointer}.opt input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.opt span{display:block;padding:12px 14px;border:2px solid var(--bd);border-radius:6px;font-weight:600;font-size:14px;color:var(--tx);border-left:6px solid var(--sc,#9aa1ab)}
+.opt:hover span{border-color:var(--sc,#9aa1ab)}.opt input:checked+span{border-color:var(--sc,var(--ac));background:rgba(128,128,128,.12)}
+.opt input:focus-visible+span{outline:2px solid var(--ac)}
+.emo{display:block!important;padding:10px!important}
+.emotabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}.emotabs button{font-size:13px!important;padding:4px 10px!important}
+.emotabs button.on{background:var(--ac)!important;color:#fff!important;border-color:var(--ac)!important}
+.emogrid{display:flex;flex-wrap:wrap;gap:4px;max-height:170px;overflow:auto}.emogrid button{font-size:20px!important;padding:3px 7px!important;line-height:1.3}
+.emo code{background:rgba(128,128,128,.18);padding:1px 5px;border-radius:3px;font-size:12px}

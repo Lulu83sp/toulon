@@ -1,11 +1,17 @@
 'use client';
 import {useRef,useState} from 'react';
 import {Bb} from '../lib/bb';
-const EMO=['😀','😂','😅','😍','😎','🤔','😢','😡','😱','👍','👎','👏','🙏','🔥','❤️','✅','❌','⚠️','🚓','🚔','🚑','🚒','👮','⚖️'];
+const EMO={
+  '😀 Visages':'😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 😘 😋 😛 😜 🤪 😎 🤓 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🤭 🤫 🙄 😬 😴 🤢 🤮 😷 🤒',
+  '👍 Gestes':'👍 👎 👌 ✌️ 🤞 🤟 🤘 👋 🤚 ✋ 👏 🙌 🤝 🙏 💪 👀 🫡 ☝️ 👇 👉 👈 ✍️ 🤙',
+  '❤️ Cœurs':'❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 💯 💥 💫 ⭐ 🌟 ✨ 🔥 🎉 🎊 🏆 🥇 🎖️',
+  '🚓 Services':'🚓 🚔 🚨 👮 👮‍♂️ 👮‍♀️ 🚑 🚒 🧑‍🚒 🧑‍⚕️ 🚁 🚙 🚗 🚕 🚌 🏍️ 🚧 🛑 🚦 ⚖️ 🔒 🔑 📻 📞 📋 📝 🗂️ 🏥 🏢 🏛️ 🛡️ 🪪',
+  '✅ Symboles':'✅ ❌ ⚠️ ❗ ❓ ℹ️ ➡️ ⬅️ ⬆️ ⬇️ 🔴 🟢 🔵 🟡 ⚫ ⚪ 🔔 📌 📎 💡 🕐 📅'
+};
 const TB=[['B','b','Gras'],['I','i','Italique'],['U','u','Souligné'],['S','s','Barré'],['❝','quote','Citation'],['</>','code','Code'],['⇔','center','Centrer']];
 export default function Editor({name='body',rows=12,placeholder='Votre message…'}){
   const ref=useRef(null),file=useRef(null);
-  const [v,setV]=useState(''),[prev,setPrev]=useState(false),[emo,setEmo]=useState(false),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
+  const [cat,setCat]=useState(Object.keys(EMO)[0]),[v,setV]=useState(''),[prev,setPrev]=useState(false),[emo,setEmo]=useState(false),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
   const ins=(a,b='',ph='')=>{
     const el=ref.current,s=el.selectionStart,e=el.selectionEnd,sel=v.slice(s,e)||ph;
     const nv=v.slice(0,s)+a+sel+b+v.slice(e);
@@ -30,12 +36,14 @@ export default function Editor({name='body',rows=12,placeholder='Votre message�
       <button type="button" title="Lien" onClick={link}>🔗</button>
       <button type="button" title="Image depuis une adresse" onClick={imgUrl}>🌐</button>
       <button type="button" title="Envoyer une image" onClick={()=>file.current.click()} disabled={busy}>{busy?'⏳':'🖼️ Image'}</button>
-      <button type="button" title="Smileys" onClick={()=>setEmo(!emo)}>😀</button>
+      <button type="button" title="Insérer un emoji" onClick={()=>setEmo(!emo)}>😀 Emojis</button>
       <span className="sep"/>
       <button type="button" onClick={()=>setPrev(!prev)}>{prev?'Modifier':'Aperçu'}</button>
       <input ref={file} type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange={e=>up(e.target.files[0])}/>
     </div>
-    {emo&&<div className="emo">{EMO.map(x=><button type="button" key={x} onClick={()=>ins(x)}>{x}</button>)}</div>}
+    {emo&&<div className="emo"><div className="emotabs">{Object.keys(EMO).map(k=><button type="button" key={k} className={k===cat?'on':''} onClick={()=>setCat(k)}>{k}</button>)}</div>
+      <div className="emogrid">{EMO[cat].split(' ').map(x=><button type="button" key={x} onClick={()=>ins(x)}>{x}</button>)}</div>
+      <p className="mu" style={{margin:'8px 0 0'}}>Raccourcis : <code>:)</code> <code>:D</code> <code>;)</code> <code>&lt;3</code> <code>:police:</code> <code>:pompier:</code> <code>:samu:</code> <code>:ok:</code> <code>:feu:</code> <code>:merci:</code> — vous pouvez aussi utiliser le clavier emoji de votre appareil.</p></div>}
     {msg&&<p className="err" style={{margin:'6px 0'}}>{msg}</p>}
     <textarea ref={ref} name={name} rows={rows} value={v} required maxLength={10000} placeholder={placeholder} style={{display:prev?'none':'block'}}
       onChange={e=>setV(e.target.value)}

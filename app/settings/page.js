@@ -1,15 +1,16 @@
 import {sql} from '../../lib/db';
 import {getUser} from '../../lib/auth';
-import {saveProfile,changeEmail,changePassword,removeAvatar,chooseTheme} from '../actions';
+import {saveProfile,changeEmail,changePassword,removeAvatar,chooseTheme,saveService} from '../actions';
 import AvatarUploader from '../AvatarUploader';
 import PwInput from '../PwInput';
 import {cookies} from 'next/headers';
+import {SERVICES} from '../../lib/services';
 import {redirect} from 'next/navigation';
 export const dynamic='force-dynamic';
 const THEMES=[['rouge','Rouge','#e0151b','#ffffff'],['sobre','Sobre','#41607f','#f2f3f5'],['sombre','Sombre','#e5383b','#1c2128']];
 export default async function S({searchParams}){
   const u=await getUser(); if(!u) redirect('/login?next=/settings');
-  const [me]=await sql`select pseudo,email,bio,avatar from users where id=${u.id}`;
+  const [me]=await sql`select pseudo,email,bio,avatar,service from users where id=${u.id}`;
   const th=['rouge','sobre','sombre'].includes(cookies().get('theme')?.value)?cookies().get('theme').value:'rouge';
   return(<>
     <p className="crumb"><a href="/">Accueil</a> › Paramètres</p>
@@ -24,6 +25,14 @@ export default async function S({searchParams}){
       <label>Pseudonyme<input name="pseudo" defaultValue={me.pseudo} required minLength={3} maxLength={20}/></label>
       <label>Biographie<textarea name="bio" rows="4" maxLength={500} defaultValue={me.bio} placeholder="Présentez-vous en quelques mots…"/></label>
       <button className="btn">Enregistrer le profil</button></form>
+
+    <form action={saveService} className="card sf"><h3>Mon service</h3>
+      <p className="mu" style={{margin:'-6px 0 12px'}}>Choisissez le service que vous incarnez : un badge s’affichera sur vos messages et votre profil.</p>
+      <div className="svcs">
+        <label className="opt"><input type="radio" name="service" value="" defaultChecked={!me.service}/><span>👤 Civil / aucun</span></label>
+        {Object.entries(SERVICES).map(([k,s])=><label className="opt" key={k}><input type="radio" name="service" value={k} defaultChecked={me.service===k}/><span style={{'--sc':s.c}}>{s.i} {s.n}</span></label>)}
+      </div>
+      <button className="btn" style={{marginTop:14}}>Enregistrer mon service</button></form>
 
     <section className="card sf"><h3>Apparence</h3>
       <div className="themes">{THEMES.map(([k,n,a,b])=><form action={chooseTheme} key={k}><input type="hidden" name="theme" value={k}/>
