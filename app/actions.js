@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import {sql} from '../lib/db';
 import {getUser,setSession,lv,LV} from '../lib/auth';
 import {SERVICES,svcList,svcJoin} from '../lib/services';
+import {REACTIONS} from '../lib/reactions';
 const s=(f,k,max)=>String(f.get(k)||'').trim().slice(0,max);
 const back=(p,e)=>redirect(`${p}?e=${encodeURIComponent(e)}`);
 const safeNext=n=>{n=String(n||'');return /^\/(?!\/)[^\\]*$/.test(n)?n:'/'};
@@ -217,4 +218,19 @@ export async function setMemberService(f){
   if(id!==u.id&&LV[t.role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
   await sql`update users set service=${svcJoin(asked)} where id=${id}`;
   revalidatePath('/admin'); revalidatePath('/','layout');
+}
+
+export async function toggleReaction(f){
+  const u=await getUser(); if(!u) redirect('/login');
+  const pid=Number(f.get('post')),emoji=String(f.get('emoji')||'');
+  if(!pid||!REACTIONS.includes(emoji)) return;
+  const [p]=await sql`select p.topic_id,c.staff from posts p join topics t on t.id=p.topic_id join forums fo on fo.id=t.forum_id join categories c on c.id=fo.cat_id where p.id=${pid}`;
+  if(!p||(p.staff&&lv(u)<LV['Modérateur'])) return;
+  const del=await sql`delete from post_reactions where post_id=${pid} and user_id=${u.id} and emoji=${emoji} returning post_id`;
+  if(del.length===0){
+    const [r]=await sql`select count(*) n from post_reactions where post_id=${pid} and user_id=${u.id}`;
+    if(Number(r.n)>=REACTIONS.length) return;
+    await sql`insert into post_reactions(post_id,user_id,emoji) values(${pid},${u.id},${emoji}) on conflict do nothing`;
+  }
+  revalidatePath(`/t/${p.topic_id}`);
 }

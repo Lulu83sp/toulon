@@ -41,3 +41,6 @@ alter table forums add column if not exists descr text not null default '';
 alter table forums add column if not exists locked bool not null default false;
 -- Service choisi par le joueur (paramètres). À exécuter UNE FOIS.
 alter table users add column if not exists service text not null default '';
+
+create table if not exists post_reactions(post_id int not null references posts(id) on delete cascade,user_id int not null references users(id) on delete cascade,emoji text not null,created_at timestamptz default now(),primary key(post_id,user_id,emoji));
+create index if not exists post_reactions_post on post_reactions(post_id);
