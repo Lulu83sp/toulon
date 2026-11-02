@@ -49,5 +49,6 @@ export default async function S({searchParams}){
       <label>Nouveau mot de passe<PwInput name="pw1" placeholder="8 caractères minimum" autoComplete="new-password"/></label>
       <label>Confirmer le nouveau mot de passe<PwInput name="pw2" placeholder="Retapez le nouveau mot de passe" autoComplete="new-password"/></label>
       <button className="btn">Changer le mot de passe</button></form>
+
   </>);
 }
