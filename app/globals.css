@@ -114,3 +114,5 @@ footer{text-align:center}
 [data-theme=sombre] .cat-h{background:linear-gradient(90deg,rgba(0,0,0,.3),transparent 40%),repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 6px,transparent 6px 14px),linear-gradient(180deg,#b4262a,#8a1a1d)}
 [data-theme=sombre] .cat-h.staff{background:linear-gradient(180deg,#2d333d,#1a1f26)}
 [data-theme=sombre] .mrow,[data-theme=sombre] .frow,[data-theme=sombre] .trow{border-color:var(--bd)}
+.doc{padding:0;overflow:hidden}.doc-h{padding:14px 20px;font-size:20px;font-weight:700;border-bottom:1px solid var(--bd);border-left:5px solid var(--ac)}
+.doc-h a:hover{color:var(--ac)}.doc-b{padding:18px 22px;line-height:1.7}.doc-f{padding:10px 20px;border-top:1px solid var(--bd)}.doc-f a{color:var(--ac)}
