@@ -20,7 +20,7 @@ export default async function A({searchParams}){
     <div className="card"><div className="stats" style={{marginTop:0}}><div><b>{c.total}</b>Membres</div><div><b>{c.staff}</b>Staff</div><div><b>{c.bans}</b>Suspendus</div></div>
       <p style={{margin:'12px 0 0'}}><a className="btn" href="/admin/structure">🗂️ Gérer les catégories et salons</a></p>
       {fs.length>0&&<p className="mu" style={{margin:'12px 0 0'}}>Espace staff : {fs.map((f,i)=><a key={f.id} href={`/f/${f.id}`}>{i?' · ':''}<b>{f.name}</b></a>)}</p>}</div>
-    <section className="cat">
+    <section className="cat memb">
       <div className="cat-h staff" style={{gridTemplateColumns:'1fr'}}><span className="t">Membres {q&&`· « ${q} »`}</span></div>
       {ms.length===0&&<p className="mu" style={{padding:16}}>Aucun membre trouvé.</p>}
       {ms.map(m=>{const can=m.id!==u.id&&(LV[m.role]<lv(u)||u.role==='Fondateur');const cs=can||m.id===u.id;return(
