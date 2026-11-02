@@ -99,3 +99,44 @@ export async function saveBio(f){
   const u=await getUser(); if(!u) redirect('/login');
   await sql`update users set bio=${s(f,'bio',500)} where id=${u.id}`; redirect(`/u/${u.id}`);
 }
+
+export async function setTheme(){
+  const c=cookies(),cur=c.get('theme')?.value;
+  c.set('theme',cur==='sobre'?'rouge':'sobre',{path:'/',maxAge:31536000,sameSite:'lax'});
+  revalidatePath('/','layout');
+}
+const sb=(m)=>redirect(`/admin/structure?m=${encodeURIComponent(m)}`);
+export async function createCategory(f){
+  const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
+  const name=s(f,'name',60),staff=f.get('staff')==='on';
+  if(name.length<2) sb('Nom de catégorie trop court.');
+  let np;
+  if(staff){const [m]=await sql`select coalesce(max(pos),0)+1 n from categories`;np=m.n}
+  else{const [m]=await sql`select coalesce(max(pos),0)+1 n from categories where not staff`;np=m.n;
+    await sql`update categories set pos=pos+1 where pos>=${np}`}
+  await sql`insert into categories(name,pos,staff) values(${name},${np},${staff})`;
+  revalidatePath('/'); sb(`Catégorie « ${name} » créée.`);
+}
+export async function createForum(f){
+  const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
+  const cid=Number(f.get('cat')),name=s(f,'name',60),descr=s(f,'descr',200);
+  if(name.length<2) sb('Nom du salon trop court.');
+  const [c]=await sql`select id from categories where id=${cid}`; if(!c) sb('Catégorie introuvable.');
+  const [m]=await sql`select coalesce(max(pos),0)+1 n from forums where cat_id=${cid}`;
+  await sql`insert into forums(cat_id,name,pos,descr) values(${cid},${name},${m.n},${descr})`;
+  revalidatePath('/'); sb(`Salon « ${name} » créé.`);
+}
+export async function deleteForum(f){
+  const u=await getUser(); if(lv(u)<LV.Administrateur) redirect('/');
+  const id=Number(f.get('id'));
+  const [n]=await sql`select count(*) n from topics where forum_id=${id}`;
+  if(Number(n.n)>0) sb('Ce salon contient des sujets : supprimez-les ou déplacez-les d’abord.');
+  await sql`delete from forums where id=${id}`; revalidatePath('/'); sb('Salon supprimé.');
+}
+export async function deleteCategory(f){
+  const u=await getUser(); if(lv(u)<LV.Administrateur) redirect('/');
+  const id=Number(f.get('id'));
+  const [n]=await sql`select count(*) n from forums where cat_id=${id}`;
+  if(Number(n.n)>0) sb('Cette catégorie contient encore des salons.');
+  await sql`delete from categories where id=${id}`; revalidatePath('/'); sb('Catégorie supprimée.');
+}

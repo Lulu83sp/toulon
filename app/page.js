@@ -8,7 +8,7 @@ export default async function Home(){
     (select count(*) from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where (not c.staff or ${staff}::boolean)) t,
     (select count(*) from posts p join topics t on t.id=p.topic_id join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where (not c.staff or ${staff}::boolean)) p,(select count(*) from users where last_seen>now()-interval '5 minutes') o`;
   const online=await sql`select id,pseudo from users where last_seen>now()-interval '5 minutes' order by pseudo`;
-  const rows=await sql`select c.name cname,c.staff,f.id,f.name,
+  const rows=await sql`select c.name cname,c.staff,f.id,f.name,f.descr,
     (select count(*) from topics t where t.forum_id=f.id) as n,
     (select count(*) from posts p join topics t on t.id=p.topic_id where t.forum_id=f.id) as m,
     lp.pseudo as lpseudo,lp.uid as luid,lp.avatar as lavatar,lp.at_ as lat,lp.tid as ltid,lp.title as ltitle
@@ -22,11 +22,11 @@ export default async function Home(){
     {Object.entries(g).map(([name,fs])=>(
       <section className="cat" key={name}>
         <div className={`cat-h${fs[0].staff?" staff":""}`}><span className="t">{fs[0].staff&&"🔒 "}{name}{fs[0].staff&&" · réservé à l’équipe"}</span><span className="c">Sujets</span><span className="c">Messages</span><span className="c l" style={{textAlign:'left',paddingLeft:12}}>Derniers messages</span></div>
-        {fs[0].staff&&<a className="frow" href="/admin" style={{background:'#fff7f7'}}><div className="fi"><span className="fico" style={{background:'#e0151b'}}><Ico/></span><div><span className="ft">Panneau de gestion des membres</span><div className="fd">Rechercher, promouvoir, rétrograder ou bannir des membres.</div></div></div></a>}
+        {fs[0].staff&&<a className="frow" href="/admin" style={{background:'#fafafa'}}><div className="fi"><span className="fico" style={{background:'var(--ac)'}}><Ico/></span><div><span className="ft">Panneau de gestion des membres</span><div className="fd">Rechercher, promouvoir, rétrograder ou bannir des membres.</div></div></div></a>}
         {fs.map(f=>(
           <div className="frow" key={f.id}>
             <div className="fi"><span className="fico"><Ico/></span>
-              <div><a className="ft" href={`/f/${f.id}`}>{f.name}</a><div className="fd">{DESC[f.name]||''}</div></div></div>
+              <div><a className="ft" href={`/f/${f.id}`}>{f.name}</a><div className="fd">{f.descr||DESC[f.name]||''}</div></div></div>
             <div className="num"><b>{f.n}</b><span>Sujets</span></div>
             <div className="num"><b>{f.m}</b><span>Messages</span></div>
             <div className="last">{f.lpseudo?<>

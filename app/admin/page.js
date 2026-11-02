@@ -17,6 +17,7 @@ export default async function A({searchParams}){
     <div className="pagehead"><h2>Gestion des membres</h2>
       <form style={{display:'flex',gap:6}}><input name="q" defaultValue={q} placeholder="Rechercher un pseudo…" style={{margin:0,width:220}}/><button className="btn">Rechercher</button></form></div>
     <div className="card"><div className="stats" style={{marginTop:0}}><div><b>{c.total}</b>Membres</div><div><b>{c.staff}</b>Staff</div><div><b>{c.bans}</b>Suspendus</div></div>
+      <p style={{margin:'12px 0 0'}}><a className="btn" href="/admin/structure">🗂️ Gérer les catégories et salons</a></p>
       {fs.length>0&&<p className="mu" style={{margin:'12px 0 0'}}>Espace staff : {fs.map((f,i)=><a key={f.id} href={`/f/${f.id}`}>{i?' · ':''}<b>{f.name}</b></a>)}</p>}</div>
     <section className="cat">
       <div className="cat-h staff" style={{gridTemplateColumns:'1fr'}}><span className="t">Membres {q&&`· « ${q} »`}</span></div>

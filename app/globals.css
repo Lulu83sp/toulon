@@ -68,3 +68,17 @@ footer{text-align:center}
 .auth-b .chk{display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--tx);margin:4px 0 14px;cursor:pointer}.auth-b .chk input{width:auto;margin:0;accent-color:var(--ac)}
 .authe{background:#fff0f0;border-left:4px solid var(--ac);padding:10px 12px;margin:0 0 14px}
 .pwwrap{position:relative}.pwwrap input{padding-right:44px;margin-top:5px}.eye{position:absolute;right:6px;top:9px;background:none;border:0;cursor:pointer;font-size:17px;padding:4px 8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.chk2{display:flex;align-items:center;gap:8px;font-size:14px;margin:0 0 12px}.chk2 input{width:auto;margin:0;accent-color:var(--ac)}
+/* Thème sobre */
+[data-theme=sobre]{--ac:#41607f;--ac2:#30475f;--bg:#f2f3f5;--nav:#2b3037}
+[data-theme=sobre] header{border-top-color:#6b7787}
+[data-theme=sobre] .cat-h,[data-theme=sobre] .auth-h{background:#4b5565}
+[data-theme=sobre] .cat-h.staff{background:#2b3037}
+[data-theme=sobre] .welcome{background:#343a44;border-left-color:#7d8896}
+[data-theme=sobre] .fico{background:#aab1bb}
+[data-theme=sobre] .tb button:hover,[data-theme=sobre] .emo button:hover{background:#eef1f5}
+[data-theme=sobre] .lockbar,[data-theme=sobre] .authe{background:#f3f5f8}
+[data-theme=sobre] input:focus,[data-theme=sobre] textarea:focus{outline-color:rgba(65,96,127,.35)}
+[data-theme=sobre] header a:not(.btn):hover{color:#c5d3e2}
+[data-theme=sobre] .tag{background:#5a6b7e}
