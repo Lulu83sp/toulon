@@ -7,7 +7,7 @@ export default async function F({params,searchParams}){
   const [f]=await sql`select f.id,f.name,c.name cat from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
   if(!f) notFound();
   const pg=Math.max(1,Number(searchParams.p)||1);
-  const ts=await sql`select t.id,t.title,t.pinned,t.created_at,u.pseudo,u.avatar,
+  const ts=await sql`select t.id,t.title,t.pinned,t.locked,t.created_at,u.pseudo,u.avatar,
     (select count(*)-1 from posts p where p.topic_id=t.id) as r,
     lp.pseudo as lpseudo,lp.uid as luid,lp.avatar as lavatar,lp.at_ as lat
     from topics t join users u on u.id=t.user_id
@@ -22,7 +22,7 @@ export default async function F({params,searchParams}){
       {ts.slice(0,PER).map(t=>(
         <div className="trow" key={t.id}>
           <div className="tsub"><Av pseudo={t.pseudo} avatar={t.avatar} size={40}/>
-            <div style={{minWidth:0}}><a className="ft" href={`/t/${t.id}`}>{t.pinned&&<span className="tag">Épinglé</span>} {t.title}</a>
+            <div style={{minWidth:0}}><a className="ft" href={`/t/${t.id}`}>{t.pinned&&<span className="tag">Épinglé</span>} {t.locked&&<span className="tag lk">🔒</span>} {t.title}</a>
               <div className="mu">par <b>{t.pseudo}</b>, {ago(t.created_at)}</div></div></div>
           <div className="num"><b>{t.r}</b><span>Réponses</span></div>
           <div className="last">{t.lpseudo&&<><Av pseudo={t.lpseudo} avatar={t.lavatar} size={36}/>

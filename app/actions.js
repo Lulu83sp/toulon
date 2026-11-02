@@ -39,7 +39,9 @@ export async function createTopic(f){
   if(fo.pos===1&&lv(u)<LV['Modérateur']) back(`/new?f=${fid}`,'Réservé à l’équipe.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/new?f=${fid}`,'Trop rapide, patientez.');
-  const [t]=await sql`insert into topics(forum_id,user_id,title) values(${fid},${u.id},${title}) returning id`;
+  const mod=lv(u)>=LV['Modérateur'];
+  const pin=mod&&f.get('pin')==='on',lock=mod&&f.get('lock')==='on';
+  const [t]=await sql`insert into topics(forum_id,user_id,title,pinned,locked) values(${fid},${u.id},${title},${pin},${lock}) returning id`;
   await sql`insert into posts(topic_id,user_id,body) values(${t.id},${u.id},${body})`;
   redirect(`/t/${t.id}`);
 }
@@ -47,6 +49,8 @@ export async function reply(f){
   const u=await getUser(); if(!u) redirect('/login');
   const tid=Number(f.get('topic')),body=s(f,'body',10000);
   if(!body) redirect(`/t/${tid}`);
+  const [tp]=await sql`select locked from topics where id=${tid}`; if(!tp) redirect('/');
+  if(tp.locked&&lv(u)<LV['Modérateur']) back(`/t/${tid}`,'Ce sujet est verrouillé.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/t/${tid}`,'Trop rapide, patientez.');
   await sql`insert into posts(topic_id,user_id,body) values(${tid},${u.id},${body})`;
@@ -64,6 +68,11 @@ export async function pinTopic(f){
   const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
   const id=Number(f.get('id'));
   await sql`update topics set pinned=not pinned where id=${id}`; revalidatePath(`/t/${id}`);
+}
+export async function lockTopic(f){
+  const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
+  const id=Number(f.get('id'));
+  await sql`update topics set locked=not locked where id=${id}`; revalidatePath(`/t/${id}`); revalidatePath('/');
 }
 export async function setRole(f){
   const u=await getUser(); if(lv(u)<LV.Administrateur) redirect('/');
