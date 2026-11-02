@@ -82,3 +82,35 @@ footer{text-align:center}
 [data-theme=sobre] input:focus,[data-theme=sobre] textarea:focus{outline-color:rgba(65,96,127,.35)}
 [data-theme=sobre] header a:not(.btn):hover{color:#c5d3e2}
 [data-theme=sobre] .tag{background:#5a6b7e}
+.hu{display:flex;align-items:center;gap:8px;font-weight:600}
+.sf h3{margin:0 0 14px;font-size:17px}.sf label{display:block;font-size:13px;font-weight:600;color:var(--mu);margin-bottom:6px}
+.sf label input,.sf label textarea{font-weight:400;margin-top:5px}
+.avbox{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.okbar{background:#effaf1;border-left:4px solid #2e9e4f;margin-top:6px}
+.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.themes form{margin:0}
+.thm{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border:2px solid var(--bd);border-radius:6px;background:transparent;color:var(--tx);cursor:pointer;font:inherit}
+.thm.on{border-color:var(--ac)}.thm:hover{border-color:var(--ac)}
+.sw{display:block;width:100%;height:46px;border-radius:4px;border:1px solid #cfcfcf;position:relative;overflow:hidden}.sw i{position:absolute;left:0;top:0;right:0;height:14px}
+@media(max-width:560px){.themes{grid-template-columns:1fr}}
+/* Thème sombre */
+[data-theme=sombre]{--bg:#12151a;--card:#1c2128;--tx:#e6e9ee;--mu:#9099a6;--bd:#2b323c;--nav:#0d1013;--ac:#e5383b;--ac2:#b82a2d;color-scheme:dark}
+[data-theme=sombre] .cat,[data-theme=sombre] .auth{background:var(--card)}
+[data-theme=sombre] .frow:hover,[data-theme=sombre] .trow:hover{background:#232932}
+[data-theme=sombre] input,[data-theme=sombre] textarea,[data-theme=sombre] select{background:#12151a;border-color:#363e4a;color:var(--tx)}
+[data-theme=sombre] .ft{color:#eef0f3}[data-theme=sombre] .ft:hover{color:var(--ac)}
+[data-theme=sombre] .last .tt{color:#aab1bc}
+[data-theme=sombre] .tb{background:#232932;border-color:#363e4a}
+[data-theme=sombre] .tb button,[data-theme=sombre] .emo button{background:#1c2128;border-color:#363e4a;color:var(--tx)}
+[data-theme=sombre] .tb button:hover,[data-theme=sombre] .emo button:hover{background:#3a2326}
+[data-theme=sombre] .tb .sep{background:#363e4a}
+[data-theme=sombre] .emo,[data-theme=sombre] .preview{background:var(--card);border-color:#363e4a}
+[data-theme=sombre] .quote,[data-theme=sombre] .post>div:first-child{background:#232932}
+[data-theme=sombre] .auth-b label{color:#aab1bc}
+[data-theme=sombre] .lockbar,[data-theme=sombre] .authe{background:#2a1d1f}
+[data-theme=sombre] .okbar{background:#1b2a20}
+[data-theme=sombre] .btn.g{background:#2b323c}[data-theme=sombre] .btn.g:hover{background:#38414d}
+[data-theme=sombre] .fico{background:#3a424e}
+[data-theme=sombre] .sw{border-color:#363e4a}
+[data-theme=sombre] .cat-h{background:linear-gradient(90deg,rgba(0,0,0,.3),transparent 40%),repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 6px,transparent 6px 14px),linear-gradient(180deg,#b4262a,#8a1a1d)}
+[data-theme=sombre] .cat-h.staff{background:linear-gradient(180deg,#2d333d,#1a1f26)}
+[data-theme=sombre] .mrow,[data-theme=sombre] .frow,[data-theme=sombre] .trow{border-color:var(--bd)}

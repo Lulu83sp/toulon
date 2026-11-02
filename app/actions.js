@@ -38,8 +38,9 @@ export async function createTopic(f){
   const u=await getUser(); if(!u) redirect('/login');
   const fid=Number(f.get('forum')),title=s(f,'title',140),body=s(f,'body',10000);
   if(!title||!body) back(`/new?f=${fid}`,'Titre et message requis.');
-  const [fo]=await sql`select f.id,c.pos,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${fid}`;
+  const [fo]=await sql`select f.id,f.locked,c.pos,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${fid}`;
   if(!fo||(fo.staff&&lv(u)<LV['Modérateur'])) redirect('/');
+  if(fo.locked&&lv(u)<LV['Modérateur']) back(`/new?f=${fid}`,'Ce salon est verrouillé.');
   if(fo.pos===1&&lv(u)<LV['Modérateur']) back(`/new?f=${fid}`,'Réservé à l’équipe.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/new?f=${fid}`,'Trop rapide, patientez.');
@@ -53,9 +54,9 @@ export async function reply(f){
   const u=await getUser(); if(!u) redirect('/login');
   const tid=Number(f.get('topic')),body=s(f,'body',10000);
   if(!body) redirect(`/t/${tid}`);
-  const [tp]=await sql`select t.locked,c.staff from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where t.id=${tid}`;
+  const [tp]=await sql`select t.locked,f.locked as flocked,c.staff from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where t.id=${tid}`;
   if(!tp||(tp.staff&&lv(u)<LV['Modérateur'])) redirect('/');
-  if(tp.locked&&lv(u)<LV['Modérateur']) back(`/t/${tid}`,'Ce sujet est verrouillé.');
+  if((tp.locked||tp.flocked)&&lv(u)<LV['Modérateur']) back(`/t/${tid}`,tp.flocked?'Ce salon est verrouillé.':'Ce sujet est verrouillé.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/t/${tid}`,'Trop rapide, patientez.');
   await sql`insert into posts(topic_id,user_id,body) values(${tid},${u.id},${body})`;
@@ -100,10 +101,51 @@ export async function saveBio(f){
   await sql`update users set bio=${s(f,'bio',500)} where id=${u.id}`; redirect(`/u/${u.id}`);
 }
 
+const TH=['rouge','sobre','sombre'];
 export async function setTheme(){
-  const c=cookies(),cur=c.get('theme')?.value;
-  c.set('theme',cur==='sobre'?'rouge':'sobre',{path:'/',maxAge:31536000,sameSite:'lax'});
+  const c=cookies(),cur=c.get('theme')?.value,i=TH.indexOf(cur);
+  c.set('theme',TH[(i+1)%TH.length],{path:'/',maxAge:31536000,sameSite:'lax'});
   revalidatePath('/','layout');
+}
+export async function chooseTheme(f){
+  const t=String(f.get('theme')||'');
+  if(TH.includes(t)) cookies().set('theme',t,{path:'/',maxAge:31536000,sameSite:'lax'});
+  revalidatePath('/','layout');
+}
+const se=(k,m)=>redirect(`/settings?${k}=${encodeURIComponent(m)}`);
+export async function saveProfile(f){
+  const u=await getUser(); if(!u) redirect('/login');
+  const pseudo=s(f,'pseudo',20),bio=s(f,'bio',500);
+  if(!/^[\wÀ-ÿ.-]{3,20}$/.test(pseudo)) se('e','Pseudo invalide (3 à 20 caractères : lettres, chiffres, . - _).');
+  try{await sql`update users set pseudo=${pseudo},bio=${bio} where id=${u.id}`}catch{se('e','Ce pseudo est déjà utilisé.')}
+  revalidatePath('/','layout'); se('ok','Profil enregistré.');
+}
+export async function changeEmail(f){
+  const u=await getUser(); if(!u) redirect('/login');
+  const email=s(f,'email',120).toLowerCase();
+  if(!/^\S+@\S+\.\S+$/.test(email)) se('e','Email invalide.');
+  const [r]=await sql`select hash from users where id=${u.id}`;
+  if(!(await bcrypt.compare(String(f.get('pw')||''),r.hash))) se('e','Mot de passe incorrect.');
+  try{await sql`update users set email=${email} where id=${u.id}`}catch{se('e','Cette adresse est déjà utilisée.')}
+  se('ok','Adresse email modifiée.');
+}
+export async function changePassword(f){
+  const u=await getUser(); if(!u) redirect('/login');
+  const p1=String(f.get('pw1')||''),p2=String(f.get('pw2')||'');
+  const [r]=await sql`select hash from users where id=${u.id}`;
+  if(!(await bcrypt.compare(String(f.get('pw')||''),r.hash))) se('e','Mot de passe actuel incorrect.');
+  if(p1.length<8) se('e','Nouveau mot de passe : 8 caractères minimum.');
+  if(p1!==p2) se('e','Les deux nouveaux mots de passe ne correspondent pas.');
+  await sql`update users set hash=${await bcrypt.hash(p1,11)} where id=${u.id}`;
+  se('ok','Mot de passe modifié.');
+}
+export async function removeAvatar(){
+  const u=await getUser(); if(!u) redirect('/login');
+  const [r]=await sql`select avatar from users where id=${u.id}`;
+  const m=/^\/img\/(\d+)$/.exec(r?.avatar||'');
+  if(m) await sql`delete from images where id=${Number(m[1])} and user_id=${u.id}`;
+  await sql`update users set avatar='' where id=${u.id}`;
+  revalidatePath('/','layout'); se('ok','Photo supprimée.');
 }
 const sb=(m)=>redirect(`/admin/structure?m=${encodeURIComponent(m)}`);
 export async function createCategory(f){
@@ -139,4 +181,11 @@ export async function deleteCategory(f){
   const [n]=await sql`select count(*) n from forums where cat_id=${id}`;
   if(Number(n.n)>0) sb('Cette catégorie contient encore des salons.');
   await sql`delete from categories where id=${id}`; revalidatePath('/'); sb('Catégorie supprimée.');
+}
+
+export async function lockForum(f){
+  const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
+  const id=Number(f.get('id'));
+  await sql`update forums set locked=not locked where id=${id}`;
+  revalidatePath('/'); revalidatePath(`/f/${id}`); revalidatePath('/admin/structure');
 }

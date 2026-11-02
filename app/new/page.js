@@ -6,9 +6,10 @@ import {redirect,notFound} from 'next/navigation';
 export const dynamic='force-dynamic';
 export default async function N({searchParams}){
   const u=await getUser(); if(!u) redirect(`/login?next=${encodeURIComponent('/new?f='+(searchParams.f||''))}`);
-  const [f]=await sql`select f.id,f.name,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(searchParams.f)||0}`;
+  const [f]=await sql`select f.id,f.name,f.locked,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(searchParams.f)||0}`;
   if(!f||(f.staff&&lv(u)<LV['Modérateur'])) notFound();
   const mod=lv(u)>=LV['Modérateur'];
+  if(f.locked&&!mod) return(<p className="card lockbar">🔒 Ce salon est verrouillé : vous ne pouvez plus y créer de sujet. <a href={`/f/${f.id}`}><b>Retour</b></a></p>);
   return(<>
     <p className="crumb"><a href="/">Accueil</a> › <a href={`/f/${f.id}`}>{f.name}</a> › Nouveau sujet</p>
     <h2 style={{margin:'6px 0 14px',fontWeight:400,fontSize:28}}>Poster un nouveau sujet</h2>

@@ -2,11 +2,13 @@ import {sql} from '../../../lib/db';
 import {notFound} from 'next/navigation';
 import {ago,Av} from '../../../lib/ui';
 import {getUser,lv,LV} from '../../../lib/auth';
+import {lockForum} from '../../actions';
 export const dynamic='force-dynamic';
 const PER=20;
 export default async function F({params,searchParams}){
-  const [f]=await sql`select f.id,f.name,c.name cat,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
-  if(!f||(f.staff&&lv(await getUser())<LV['Modérateur'])) notFound();
+  const [f]=await sql`select f.id,f.name,f.locked,c.name cat,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
+  const me=await getUser(),isMod=lv(me)>=LV['Modérateur'];
+  if(!f||(f.staff&&!isMod)) notFound();
   const pg=Math.max(1,Number(searchParams.p)||1);
   const ts=await sql`select t.id,t.title,t.pinned,t.locked,t.created_at,u.pseudo,u.avatar,
     (select count(*)-1 from posts p where p.topic_id=t.id) as r,
@@ -16,7 +18,9 @@ export default async function F({params,searchParams}){
     where t.forum_id=${f.id} order by t.pinned desc,t.last_post_at desc limit ${PER+1} offset ${(pg-1)*PER}`;
   return(<>
     <p className="crumb"><a href="/">Accueil</a> › {f.cat} › {f.name}</p>
-    <div className="pagehead"><h2>{f.name}</h2><a className="btn" href={`/new?f=${f.id}`}>Nouveau sujet</a></div>
+    <div className="pagehead"><h2>{f.name}</h2><span style={{display:'flex',gap:8}}>{isMod&&<form action={lockForum} style={{margin:0}}><input type="hidden" name="id" value={f.id}/><button className="btn g">{f.locked?'🔓 Déverrouiller le salon':'🔒 Verrouiller le salon'}</button></form>}
+      {(!f.locked||isMod)&&<a className="btn" href={`/new?f=${f.id}`}>Nouveau sujet</a>}</span></div>
+    {f.locked&&<p className="card lockbar">🔒 Ce salon est verrouillé{isMod?' (seule l’équipe peut y publier).':' : vous pouvez lire les sujets mais plus en créer ni y répondre.'}</p>}
     <section className="cat">
       <div className="cat-h t3"><span className="t">Sujets</span><span className="c">Réponses</span><span className="c l" style={{textAlign:'left',paddingLeft:12}}>Dernier message</span></div>
       {ts.length===0&&<p className="mu" style={{padding:'18px'}}>Aucun sujet pour le moment.</p>}
