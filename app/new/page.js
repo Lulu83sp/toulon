@@ -5,7 +5,7 @@ import Editor from '../Editor';
 import {redirect,notFound} from 'next/navigation';
 export const dynamic='force-dynamic';
 export default async function N({searchParams}){
-  const u=await getUser(); if(!u) redirect('/login');
+  const u=await getUser(); if(!u) redirect(`/login?next=${encodeURIComponent('/new?f='+(searchParams.f||''))}`);
   const [f]=await sql`select f.id,f.name,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(searchParams.f)||0}`;
   if(!f||(f.staff&&lv(u)<LV['Modérateur'])) notFound();
   const mod=lv(u)>=LV['Modérateur'];

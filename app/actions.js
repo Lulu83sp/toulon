@@ -7,26 +7,30 @@ import {sql} from '../lib/db';
 import {getUser,setSession,lv,LV} from '../lib/auth';
 const s=(f,k,max)=>String(f.get(k)||'').trim().slice(0,max);
 const back=(p,e)=>redirect(`${p}?e=${encodeURIComponent(e)}`);
+const safeNext=n=>{n=String(n||'');return /^\/(?!\/)[^\\]*$/.test(n)?n:'/'};
+const loginBack=(e,next)=>redirect(`/login?e=${encodeURIComponent(e)}${next&&next!=='/'?`&next=${encodeURIComponent(next)}`:''}`);
 
 export async function register(f){
-  const pseudo=s(f,'pseudo',20),email=s(f,'email',120).toLowerCase(),pw=String(f.get('pw')||'');
-  if(!/^[\wÀ-ÿ.-]{3,20}$/.test(pseudo)) back('/register','Pseudo invalide (3-20 caractères).');
+  const pseudo=s(f,'pseudo',20),email=s(f,'email',120).toLowerCase(),pw=String(f.get('pw')||''),pw2=String(f.get('pw2')||'');
+  if(!/^[\wÀ-ÿ.-]{3,20}$/.test(pseudo)) back('/register','Pseudo invalide (3 à 20 caractères : lettres, chiffres, . - _).');
   if(!/^\S+@\S+\.\S+$/.test(email)) back('/register','Email invalide.');
   if(pw.length<8) back('/register','Mot de passe : 8 caractères minimum.');
+  if(pw!==pw2) back('/register','Les deux mots de passe ne correspondent pas.');
+  if(f.get('rules')!=='on') back('/register','Vous devez accepter le règlement.');
   const hash=await bcrypt.hash(pw,11);
   let u;
   try{
     [u]=await sql`insert into users(pseudo,email,hash,role) values(${pseudo},${email},${hash},
       case when (select count(*) from users)=0 then 'Fondateur' else 'Membre' end) returning id`;
   }catch{back('/register','Pseudo ou email déjà utilisé.')}
-  await setSession(u.id); redirect('/');
+  await setSession(u.id,f.get('remember')==='on'); redirect('/');
 }
 export async function login(f){
-  const email=s(f,'email',120).toLowerCase();
-  const [u]=await sql`select id,hash,banned from users where email=${email}`;
-  if(!u||!(await bcrypt.compare(String(f.get('pw')||''),u.hash))) back('/login','Identifiants incorrects.');
-  if(u.banned) back('/login','Compte suspendu.');
-  await setSession(u.id); redirect('/');
+  const id=s(f,'email',120).toLowerCase(),next=safeNext(f.get('next'));
+  const [u]=await sql`select id,hash,banned from users where email=${id} or lower(pseudo)=${id}`;
+  if(!u||!(await bcrypt.compare(String(f.get('pw')||''),u.hash))) loginBack('Identifiants incorrects.',next);
+  if(u.banned) loginBack('Compte suspendu.',next);
+  await setSession(u.id,f.get('remember')==='on'); redirect(next);
 }
 export async function logout(){cookies().delete('s');redirect('/')}
 

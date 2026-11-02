@@ -61,3 +61,10 @@ footer{text-align:center}
 .mrow:first-of-type{border-top:0}.mact{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.mact form{display:flex;gap:4px;margin:0}.mact select{width:auto;margin:0;padding:7px}
 .mid{display:flex;gap:12px;align-items:center;min-width:0}
 @media(max-width:700px){.mrow{grid-template-columns:1fr}}
+.auth{max-width:440px;margin:34px auto;background:#fff;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);overflow:hidden}
+.auth-h{padding:16px 24px;color:#fff;font-size:20px;font-weight:700;background:linear-gradient(90deg,rgba(0,0,0,.18),transparent 40%),repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 6px,transparent 6px 14px),linear-gradient(180deg,#e8252b,#c40f15)}
+.auth-b{padding:24px}.auth-b label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.auth-b label input:not([type=checkbox]){font-weight:400;margin-top:5px}
+.auth-b .chk{display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--tx);margin:4px 0 14px;cursor:pointer}.auth-b .chk input{width:auto;margin:0;accent-color:var(--ac)}
+.authe{background:#fff0f0;border-left:4px solid var(--ac);padding:10px 12px;margin:0 0 14px}
+.pwwrap{position:relative}.pwwrap input{padding-right:44px;margin-top:5px}.eye{position:absolute;right:6px;top:9px;background:none;border:0;cursor:pointer;font-size:17px;padding:4px 8px}

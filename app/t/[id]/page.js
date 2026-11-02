@@ -28,6 +28,6 @@ export default async function T({params,searchParams}){
     {t.locked&&<p className="card lockbar">🔒 Ce sujet est verrouillé{isMod?' (vous pouvez néanmoins répondre en tant que modérateur).':' : vous ne pouvez plus y répondre.'}</p>}
     {canReply?<form action={reply} className="card">{searchParams.e&&<p className="err">{searchParams.e}</p>}
       <input type="hidden" name="topic" value={id}/><Editor rows={8} placeholder="Votre réponse…"/><p style={{margin:'14px 0 0'}}><button className="btn">Répondre</button></p></form>
-     :!u&&<p className="card"><a href="/login"><b>Connectez-vous</b></a> pour répondre.</p>}
+     :!u&&<p className="card"><a href={`/login?next=${encodeURIComponent(`/t/${id}`)}`}><b>Connectez-vous</b></a> pour répondre.</p>}
   </>);
 }
