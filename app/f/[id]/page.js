@@ -1,11 +1,12 @@
 import {sql} from '../../../lib/db';
 import {notFound} from 'next/navigation';
 import {ago,Av} from '../../../lib/ui';
+import {getUser,lv,LV} from '../../../lib/auth';
 export const dynamic='force-dynamic';
 const PER=20;
 export default async function F({params,searchParams}){
-  const [f]=await sql`select f.id,f.name,c.name cat from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
-  if(!f) notFound();
+  const [f]=await sql`select f.id,f.name,c.name cat,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
+  if(!f||(f.staff&&lv(await getUser())<LV['Modérateur'])) notFound();
   const pg=Math.max(1,Number(searchParams.p)||1);
   const ts=await sql`select t.id,t.title,t.pinned,t.locked,t.created_at,u.pseudo,u.avatar,
     (select count(*)-1 from posts p where p.topic_id=t.id) as r,

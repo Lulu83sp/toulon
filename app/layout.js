@@ -7,7 +7,7 @@ export default async function L({children}){
   return(<html lang="fr"><body><header><div className="w">
     <a href="/" className="logo">LSPDFR <b>Toulon</b> Simulation</a>
     <form action="/search"><input name="q" placeholder="Rechercher…" style={{margin:0,width:180}}/></form>
-    {u?<>{lv(u)>=LV['Modérateur']&&<a href="/admin" className="btn g">Admin</a>}
+    {u?<>{lv(u)>=LV['Modérateur']&&<a href="/admin" className="btn g">Staff</a>}
       <a href={`/u/${u.id}`}>{u.pseudo}</a><form action={logout}><button className="btn g">Déconnexion</button></form></>
      :<><a href="/login" className="btn g">Connexion</a><a href="/register" className="btn">Inscription</a></>}
   </div></header><main className="w">{children}</main>

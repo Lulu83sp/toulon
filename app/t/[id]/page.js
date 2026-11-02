@@ -8,8 +8,8 @@ import Editor from '../../Editor';
 export const dynamic='force-dynamic';
 export default async function T({params,searchParams}){
   const id=Number(params.id)||0,u=await getUser();
-  const [t]=await sql`select t.*,f.name fname from topics t join forums f on f.id=t.forum_id where t.id=${id}`;
-  if(!t) notFound();
+  const [t]=await sql`select t.*,f.name fname,c.staff from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where t.id=${id}`;
+  if(!t||(t.staff&&lv(u)<LV['Modérateur'])) notFound();
   const ps=await sql`select p.id,p.body,p.created_at,u.id uid,u.pseudo,u.role,u.created_at joined,u.avatar,(select count(*) from posts x where x.user_id=u.id) n from posts p join users u on u.id=p.user_id where p.topic_id=${id} order by p.id`;
   const isMod=lv(u)>=LV['Modérateur'];
   const mod=u&&(u.id===t.user_id||isMod);

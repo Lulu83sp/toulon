@@ -34,8 +34,8 @@ export async function createTopic(f){
   const u=await getUser(); if(!u) redirect('/login');
   const fid=Number(f.get('forum')),title=s(f,'title',140),body=s(f,'body',10000);
   if(!title||!body) back(`/new?f=${fid}`,'Titre et message requis.');
-  const [fo]=await sql`select f.id,c.pos from forums f join categories c on c.id=f.cat_id where f.id=${fid}`;
-  if(!fo) redirect('/');
+  const [fo]=await sql`select f.id,c.pos,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${fid}`;
+  if(!fo||(fo.staff&&lv(u)<LV['Modérateur'])) redirect('/');
   if(fo.pos===1&&lv(u)<LV['Modérateur']) back(`/new?f=${fid}`,'Réservé à l’équipe.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/new?f=${fid}`,'Trop rapide, patientez.');
@@ -49,7 +49,8 @@ export async function reply(f){
   const u=await getUser(); if(!u) redirect('/login');
   const tid=Number(f.get('topic')),body=s(f,'body',10000);
   if(!body) redirect(`/t/${tid}`);
-  const [tp]=await sql`select locked from topics where id=${tid}`; if(!tp) redirect('/');
+  const [tp]=await sql`select t.locked,c.staff from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where t.id=${tid}`;
+  if(!tp||(tp.staff&&lv(u)<LV['Modérateur'])) redirect('/');
   if(tp.locked&&lv(u)<LV['Modérateur']) back(`/t/${tid}`,'Ce sujet est verrouillé.');
   const [r]=await sql`select count(*) n from posts where user_id=${u.id} and created_at>now()-interval '30 seconds'`;
   if(Number(r.n)>=3) back(`/t/${tid}`,'Trop rapide, patientez.');
