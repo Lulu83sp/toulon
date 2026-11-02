@@ -3,7 +3,7 @@ import {getUser,lv,LV} from '../../lib/auth';
 import {setRole,toggleBan,setMemberService} from '../actions';
 import {SERVICES,svcList} from '../../lib/services';
 import {redirect} from 'next/navigation';
-import {Av,Svc,ago} from '../../lib/ui';
+import {Av,Svc,SvcIco,ago} from '../../lib/ui';
 export const dynamic='force-dynamic';
 export default async function A({searchParams}){
   const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
@@ -30,7 +30,7 @@ export default async function A({searchParams}){
               <div className="mu">{m.n} messages · inscrit {ago(m.created_at)} · actif {ago(m.last_seen)}{isAdmin&&<> · {m.email}</>}</div></div></div>
           <div className="mact">
             {cs&&<form action={setMemberService}><input type="hidden" name="id" value={m.id}/>
-              <details className="svcpick"><summary className="btn g">Badges ({svcList(m.service).length})</summary><div className="svcpop">{Object.entries(SERVICES).map(([k,s])=><label key={k}><input type="checkbox" name="service" value={k} defaultChecked={svcList(m.service).includes(k)}/> {s.i} {s.n}</label>)}<button className="btn">Enregistrer</button></div></details></form>}
+              <details className="svcpick"><summary className="btn g">Badges ({svcList(m.service).length})</summary><div className="svcpop">{Object.entries(SERVICES).map(([k,s])=><label key={k}><input type="checkbox" name="service" value={k} defaultChecked={svcList(m.service).includes(k)}/> <SvcIco k={k}/> {s.n}</label>)}<button className="btn">Enregistrer</button></div></details></form>}
             {isAdmin&&can&&<form action={setRole}><input type="hidden" name="id" value={m.id}/>
               <select name="role" defaultValue={m.role}>{Object.keys(LV).map(r=><option key={r}>{r}</option>)}</select><button className="btn g">OK</button></form>}
             {can&&<form action={toggleBan}><input type="hidden" name="id" value={m.id}/><button className="btn g">{m.banned?'Réactiver':'Bannir'}</button></form>}

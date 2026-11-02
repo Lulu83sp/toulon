@@ -6,6 +6,7 @@ import PwInput from '../PwInput';
 import {cookies} from 'next/headers';
 import {SERVICES,svcList} from '../../lib/services';
 import {redirect} from 'next/navigation';
+import {SvcIco} from '../../lib/ui';
 export const dynamic='force-dynamic';
 const THEMES=[['rouge','Rouge','#e0151b','#ffffff'],['sobre','Sobre','#41607f','#f2f3f5'],['sombre','Sombre','#e5383b','#1c2128']];
 export default async function S({searchParams}){
@@ -30,7 +31,7 @@ export default async function S({searchParams}){
     <form action={saveService} className="card sf"><h3>Mes services</h3>
       <p className="mu" style={{margin:'-6px 0 12px'}}>Cochez un ou plusieurs services que vous incarnez : les badges s’afficheront sur vos messages et votre profil.</p>
       <div className="svcs">
-        {Object.entries(SERVICES).filter(([k,s])=>!s.r||staff||lockedKeys.includes(k)).map(([k,s])=>{const lk=lockedKeys.includes(k);return(<label className="opt" key={k}><input type="checkbox" name="service" value={k} defaultChecked={mine.includes(k)} disabled={lk}/>{lk&&<input type="hidden" name="service" value={k}/>}<span style={{'--sc':s.c}}>{s.i} {s.n}{s.r&&' · staff'}{lk&&' · attribué par le staff'}</span></label>)})}
+        {Object.entries(SERVICES).filter(([k,s])=>!s.r||staff||lockedKeys.includes(k)).map(([k,s])=>{const lk=lockedKeys.includes(k);return(<label className="opt" key={k}><input type="checkbox" name="service" value={k} defaultChecked={mine.includes(k)} disabled={lk}/>{lk&&<input type="hidden" name="service" value={k}/>}<span style={{'--sc':s.c}}><SvcIco k={k}/> {s.n}{s.r&&' · staff'}{lk&&' · attribué par le staff'}</span></label>)})}
       </div>
       <button className="btn" style={{marginTop:14}}>Enregistrer mes services</button></form>
 
