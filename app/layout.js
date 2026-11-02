@@ -11,7 +11,7 @@ export default async function L({children}){
     <input type="checkbox" id="mt" className="mt" aria-hidden="true"/>
     <a href="/" className="logo"><img src="/logo" alt="" className="sitelogo"/><span>LSPDFR <b>Toulon</b> Simulation</span></a>
     <label htmlFor="mt" className="burger" aria-label="Menu" title="Menu"><i/><i/><i/></label>
-    <div className="hnav"><form action="/search"><input name="q" placeholder="Rechercher…" style={{margin:0,width:180}}/></form>
+    <div className="hnav">{u&&<form action="/search"><input name="q" placeholder="Rechercher…" style={{margin:0,width:180}}/></form>}
     <form action={setTheme}><button className="btn g" title="Changer de thème">🎨 Thème {NEXT[th].toLowerCase()}</button></form>
     {u?<>{lv(u)>=LV['Modérateur']&&<a href="/admin" className="btn g">Staff</a>}
       <a href={`/u/${u.id}`} className="hu"><Av pseudo={u.pseudo} avatar={u.avatar} size={30}/>{u.pseudo}</a>

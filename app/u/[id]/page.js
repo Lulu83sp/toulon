@@ -1,11 +1,11 @@
 import {sql} from '../../../lib/db';
 import {getUser,lv,LV} from '../../../lib/auth';
 import {saveBio} from '../../actions';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import {Av,Svc} from '../../../lib/ui';
 export const dynamic='force-dynamic';
 export default async function U({params}){
-  const me=await getUser();
+  const me=await getUser(); if(!me) redirect(`/login?next=${encodeURIComponent('/u/'+(Number(params.id)||0))}`);
   const [u]=await sql`select id,pseudo,role,bio,avatar,service,created_at,last_seen,(select count(*) from posts where user_id=users.id) n,(select count(*) from topics where user_id=users.id) t from users where id=${Number(params.id)||0}`;
   if(!u) notFound();
   const staff=lv(me)>=LV['Modérateur'];

@@ -1,8 +1,8 @@
 import {sql} from '../../../lib/db';
-import {getUser,lv,LV} from '../../../lib/auth';
+import {getUser,lv,LV,RULES} from '../../../lib/auth';
 import {reply,deleteTopic,pinTopic,lockTopic,toggleReaction} from '../../actions';
 import {REACTIONS} from '../../../lib/reactions';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import {Av,Svc} from '../../../lib/ui';
 import {Bb} from '../../../lib/bb';
 import Editor from '../../Editor';
@@ -11,6 +11,7 @@ export default async function T({params,searchParams}){
   const id=Number(params.id)||0,u=await getUser();
   const [t]=await sql`select t.*,f.name fname,f.locked flocked,c.staff from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where t.id=${id}`;
   if(!t||(t.staff&&lv(u)<LV['Modérateur'])) notFound();
+  if(!u&&t.fname!==RULES) redirect(`/login?next=${encodeURIComponent('/t/'+id)}`);
   const ps=await sql`select p.id,p.body,p.created_at,u.id uid,u.pseudo,u.role,u.created_at joined,u.avatar,u.service,(select count(*) from posts x where x.user_id=u.id) n from posts p join users u on u.id=p.user_id where p.topic_id=${id} order by p.id`;
   const rx=await sql`select r.post_id,r.emoji,count(*) n,bool_or(r.user_id=${u?u.id:0}) mine,string_agg(x.pseudo,', ' order by r.created_at) who from post_reactions r join users x on x.id=r.user_id where r.post_id in (select id from posts where topic_id=${id}) group by r.post_id,r.emoji order by min(r.created_at)`;
   const RX={};for(const r of rx)(RX[r.post_id]||=[]).push(r);

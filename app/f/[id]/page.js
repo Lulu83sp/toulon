@@ -1,7 +1,7 @@
 import {sql} from '../../../lib/db';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import {ago,Av} from '../../../lib/ui';
-import {getUser,lv,LV} from '../../../lib/auth';
+import {getUser,lv,LV,RULES} from '../../../lib/auth';
 import {lockForum} from '../../actions';
 import {Bb} from '../../../lib/bb';
 export const dynamic='force-dynamic';
@@ -10,6 +10,7 @@ export default async function F({params,searchParams}){
   const [f]=await sql`select f.id,f.name,f.locked,c.name cat,c.staff from forums f join categories c on c.id=f.cat_id where f.id=${Number(params.id)||0}`;
   const me=await getUser(),isMod=lv(me)>=LV['Modérateur'];
   if(!f||(f.staff&&!isMod)) notFound();
+  if(!me&&f.name!==RULES) redirect(`/login?next=${encodeURIComponent('/f/'+f.id)}`);
   const pg=Math.max(1,Number(searchParams.p)||1);
   const ts=await sql`select t.id,t.title,t.pinned,t.locked,t.created_at,u.pseudo,u.avatar,
     case when t.pinned and t.locked then (select body from posts p where p.topic_id=t.id order by p.id limit 1) end as body,
@@ -22,7 +23,7 @@ export default async function F({params,searchParams}){
   return(<>
     <p className="crumb"><a href="/">Accueil</a> › {f.cat} › {f.name}</p>
     <div className="pagehead"><h2>{f.name}</h2><span style={{display:'flex',gap:8}}>{isMod&&<form action={lockForum} style={{margin:0}}><input type="hidden" name="id" value={f.id}/><button className="btn g">{f.locked?'🔓 Déverrouiller le salon':'🔒 Verrouiller le salon'}</button></form>}
-      {(!f.locked||isMod)&&<a className="btn" href={`/new?f=${f.id}`}>Nouveau sujet</a>}</span></div>
+      {me&&(!f.locked||isMod)&&<a className="btn" href={`/new?f=${f.id}`}>Nouveau sujet</a>}</span></div>
     {f.locked&&<p className="card lockbar">🔒 Ce salon est verrouillé{isMod?' (seule l’équipe peut y publier).':' : vous pouvez lire les sujets mais plus en créer ni y répondre.'}</p>}
     {docs.map(t=><article className="card doc" key={t.id}>
       <div className="doc-h"><a href={`/t/${t.id}`}>{t.title}</a></div>

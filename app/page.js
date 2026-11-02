@@ -1,9 +1,9 @@
 import {sql} from '../lib/db';
 import {DESC,ago,Av,Ico} from '../lib/ui';
-import {getUser,lv,LV} from '../lib/auth';
+import {getUser,lv,LV,RULES} from '../lib/auth';
 export const dynamic='force-dynamic';
 export default async function Home(){
-  const staff=lv(await getUser())>=LV['Modérateur'];
+  const me=await getUser(),guest=!me,staff=lv(me)>=LV['Modérateur'];
   const [st]=await sql`select (select count(*) from users) m,
     (select count(*) from topics t join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where (not c.staff or ${staff}::boolean)) t,
     (select count(*) from posts p join topics t on t.id=p.topic_id join forums f on f.id=t.forum_id join categories c on c.id=f.cat_id where (not c.staff or ${staff}::boolean)) p,(select count(*) from users where last_seen>now()-interval '5 minutes') o`;
@@ -14,11 +14,12 @@ export default async function Home(){
     lp.pseudo as lpseudo,lp.uid as luid,lp.avatar as lavatar,lp.at_ as lat,lp.tid as ltid,lp.title as ltitle
     from categories c join forums f on f.cat_id=c.id
     left join lateral (select u.pseudo,u.id uid,u.avatar,p.created_at at_,t.id tid,t.title from posts p join topics t on t.id=p.topic_id join users u on u.id=p.user_id where t.forum_id=f.id order by p.id desc limit 1) lp on true
-    where (not c.staff or ${staff}::boolean)
+    where (not c.staff or ${staff}::boolean) and (${!guest}::boolean or f.name=${RULES})
     order by c.pos,f.pos`;
   const g={};rows.forEach(r=>(g[r.cname]??=[]).push(r));
   return(<>
     <section className="welcome"><h1>LSPDFR Toulon Simulation</h1><p>Le forum officiel du serveur FiveM de simulation policière française.</p></section>
+    {guest&&<section className="card"><b>🔒 Accès réservé aux membres</b><p style={{margin:'6px 0 12px'}}>Sans compte, vous pouvez uniquement consulter le règlement. Connectez-vous ou créez un compte pour accéder au reste du forum.</p><a className="btn g" href="/login">Connexion</a> <a className="btn" href="/register">Inscription</a></section>}
     {Object.entries(g).map(([name,fs])=>(
       <section className="cat" key={name}>
         <div className={`cat-h${fs[0].staff?" staff":""}`}><span className="t">{fs[0].staff&&"🔒 "}{name}{fs[0].staff&&" · réservé à l’équipe"}</span><span className="c">Sujets</span><span className="c">Messages</span><span className="c l" style={{textAlign:'left',paddingLeft:12}}>Derniers messages</span></div>
@@ -29,16 +30,16 @@ export default async function Home(){
               <div><a className="ft" href={`/f/${f.id}`}>{f.name}</a>{f.locked&&<span className="tag lk" style={{marginLeft:8}}>🔒 Verrouillé</span>}<div className="fd">{f.descr||DESC[f.name]||''}</div></div></div>
             <div className="num"><b>{f.n}</b><span>Sujets</span></div>
             <div className="num"><b>{f.m}</b><span>Messages</span></div>
-            <div className="last">{f.lpseudo?<>
+            <div className="last">{guest?null:f.lpseudo?<>
               <Av pseudo={f.lpseudo} avatar={f.lavatar} size={42}/>
               <div><a className="tt" style={{display:'block'}} href={`/t/${f.ltid}#fin`}>{f.ltitle}</a>
                 <a className="nm" href={`/u/${f.luid}`}>{f.lpseudo}</a><div className="mu">{ago(f.lat)}</div></div></>
               :<span className="mu">Aucun message</span>}</div>
           </div>))}
       </section>))}
-    <section className="card"><b>Statistiques du forum</b>
+    {!guest&&<section className="card"><b>Statistiques du forum</b>
       <div className="stats"><div><b>{st.m}</b>Membres</div><div><b>{st.t}</b>Sujets</div><div><b>{st.p}</b>Messages</div><div><b>{st.o}</b>En ligne</div></div>
       {online.length>0&&<p className="mu">En ligne : {online.map((o,i)=><a key={o.id} href={`/u/${o.id}`}>{i?', ':''}<b>{o.pseudo}</b></a>)}</p>}
-    </section>
+    </section>}
   </>);
 }

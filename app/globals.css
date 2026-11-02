@@ -165,3 +165,14 @@ footer{text-align:center}
 .logo{display:flex;align-items:center;gap:10px}.sitelogo{height:44px;width:44px;flex:none;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 .logo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:760px){.sitelogo{height:34px;width:34px}}
+/* Correctif : le logo reste entièrement dans l'entête (aucun rognage ni débordement) */
+.logo{display:flex;align-items:center;gap:10px;line-height:1.1;overflow:visible;max-width:none;flex:1 1 auto;min-width:0}
+.sitelogo{display:block;flex:none;height:40px;width:40px;aspect-ratio:1/1;object-fit:contain;filter:none;margin:0}
+.logo span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .w{box-sizing:border-box;min-height:62px;padding-top:6px;padding-bottom:6px}
+.burger{flex:none}
+@media(max-width:760px){
+  header .w{min-height:56px;padding-top:7px;padding-bottom:7px}
+  .sitelogo{height:36px;width:36px}
+  .logo{font-size:14px}
+}
