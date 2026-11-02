@@ -88,7 +88,7 @@ export async function setRole(f){
   const [t]=await sql`select role from users where id=${id}`;
   if(LV[t.role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
   if(LV[role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
-  await sql`update users set role=${role} where id=${id}`; revalidatePath('/admin');
+  await sql`update users set role=${role},service=case when service='staff' and ${LV[role]}<3 then '' else service end where id=${id}`; revalidatePath('/admin');
 }
 export async function toggleBan(f){
   const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
@@ -193,8 +193,20 @@ export async function lockForum(f){
 
 export async function saveService(f){
   const u=await getUser(); if(!u) redirect('/login');
-  const k=String(f.get('service')||'');
+  const staff=lv(u)>=LV['Modérateur'],k=String(f.get('service')||'');
   if(k&&!Object.prototype.hasOwnProperty.call(SERVICES,k)) se('e','Service invalide.');
+  if(k&&SERVICES[k].r&&!staff) se('e','Ce badge est réservé au staff.');
+  const [cur]=await sql`select service from users where id=${u.id}`;
+  if(cur?.service&&SERVICES[cur.service]?.r&&!staff) se('e','Votre badge est géré par le staff.');
   await sql`update users set service=${k} where id=${u.id}`;
   revalidatePath('/','layout'); se('ok',k?`Service choisi : ${SERVICES[k].n}.`:'Service retiré.');
+}
+export async function setMemberService(f){
+  const u=await getUser(); if(lv(u)<LV['Modérateur']) redirect('/');
+  const id=Number(f.get('id')),k=String(f.get('service')||'');
+  if(k&&!Object.prototype.hasOwnProperty.call(SERVICES,k)) redirect('/admin');
+  const [t]=await sql`select role from users where id=${id}`; if(!t) redirect('/admin');
+  if(id!==u.id&&LV[t.role]>=lv(u)&&u.role!=='Fondateur') redirect('/admin');
+  await sql`update users set service=${k} where id=${id}`;
+  revalidatePath('/admin'); revalidatePath('/','layout');
 }

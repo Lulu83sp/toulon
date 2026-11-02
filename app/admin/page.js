@@ -1,6 +1,7 @@
 import {sql} from '../../lib/db';
 import {getUser,lv,LV} from '../../lib/auth';
-import {setRole,toggleBan} from '../actions';
+import {setRole,toggleBan,setMemberService} from '../actions';
+import {SERVICES} from '../../lib/services';
 import {redirect} from 'next/navigation';
 import {Av,Svc,ago} from '../../lib/ui';
 export const dynamic='force-dynamic';
@@ -22,12 +23,14 @@ export default async function A({searchParams}){
     <section className="cat">
       <div className="cat-h staff" style={{gridTemplateColumns:'1fr'}}><span className="t">Membres {q&&`· « ${q} »`}</span></div>
       {ms.length===0&&<p className="mu" style={{padding:16}}>Aucun membre trouvé.</p>}
-      {ms.map(m=>{const can=m.id!==u.id&&(LV[m.role]<lv(u)||u.role==='Fondateur');return(
+      {ms.map(m=>{const can=m.id!==u.id&&(LV[m.role]<lv(u)||u.role==='Fondateur');const cs=can||m.id===u.id;return(
         <div className="mrow" key={m.id}>
           <div className="mid"><Av pseudo={m.pseudo} avatar={m.avatar} size={42}/>
             <div style={{minWidth:0}}><a href={`/u/${m.id}`}><b>{m.pseudo}</b></a> <span className="tag">{m.role}</span> <Svc k={m.service}/> {m.banned&&<span className="tag" style={{background:'#555'}}>Suspendu</span>}
               <div className="mu">{m.n} messages · inscrit {ago(m.created_at)} · actif {ago(m.last_seen)}{isAdmin&&<> · {m.email}</>}</div></div></div>
           <div className="mact">
+            {cs&&<form action={setMemberService}><input type="hidden" name="id" value={m.id}/>
+              <select name="service" defaultValue={m.service}><option value="">Aucun badge</option>{Object.entries(SERVICES).map(([k,s])=><option key={k} value={k}>{s.n}</option>)}</select><button className="btn g">Badge</button></form>}
             {isAdmin&&can&&<form action={setRole}><input type="hidden" name="id" value={m.id}/>
               <select name="role" defaultValue={m.role}>{Object.keys(LV).map(r=><option key={r}>{r}</option>)}</select><button className="btn g">OK</button></form>}
             {can&&<form action={toggleBan}><input type="hidden" name="id" value={m.id}/><button className="btn g">{m.banned?'Réactiver':'Bannir'}</button></form>}
